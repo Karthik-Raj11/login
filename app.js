@@ -29,7 +29,7 @@ serverside()
 app.post('/register', async (request, response) => {
   const {username, name, password, gender, location} = request.body
   const hashedPassword = await bcrypt.hash(request.body.password, 10)
-  console.log(hashedPassword)
+
   const identify_user = `select * from user where username = "${username}"`
   const matched_user = await db.get(identify_user)
 
@@ -84,20 +84,16 @@ app.put('/change-password', async (request, response) => {
     response.status(400)
     response.send(`User not Registered`)
   } else {
-    const comp_pass = await bcrypt.compare(
-      request.body.oldpassword,
-      get_q.password,
-    )
+    const comp_pass = await bcrypt.compare(oldpassword, get_q.password)
     if (comp_pass === true) {
       const length_pass = newpassword.length
       if (length_pass < 5) {
         response.status(400)
         response.send(`Password is too short`)
       } else {
-        const hash_newpassword = await bcrypt.hash(newpassword, 10)
-        const update_pass = `update user set oldpassword = "${hash_newpassword}" where username = "${username}"`
+        const hash_newpassword = await bcrypt.hash(request.body.newpassword, 10)
+        const update_pass = `UPDATE user SET password = '${hash_newpassword}'`
         await db.run(update_pass)
-        response.status(200)
         response.send(`Password updated`)
       }
     } else {
